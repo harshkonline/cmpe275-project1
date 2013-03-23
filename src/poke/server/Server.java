@@ -15,15 +15,10 @@
  */
 package poke.server;
 
-import java.awt.List;
 import java.io.BufferedInputStream;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
@@ -41,16 +36,15 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eye.Comm.Heartbeat;
-
+import poke.monitor.HeartMonitor;
 import poke.server.conf.JsonUtil;
 import poke.server.conf.ServerConf;
+import poke.server.conf.ServerConf.NodeConf;
 import poke.server.management.ManagementDecoderPipeline;
 import poke.server.management.ManagementQueue;
 import poke.server.management.ServerHeartbeat;
 import poke.server.resources.ResourceFactory;
 import poke.server.routing.ServerDecoderPipeline;
-import poke.monitor.*;
 
 /**
  * Note high surges of messages can close down the channel if the handler cannot
@@ -64,9 +58,6 @@ import poke.monitor.*;
  * @author gash
  * 
  */
-class EgdeMonitor {
-
-}
 
 public class Server {
 	protected static Logger logger = LoggerFactory.getLogger("server");
@@ -218,6 +209,7 @@ public class Server {
 		heartbeat = ServerHeartbeat.getInstance(str);
 		heartbeat.start();
 		logger.info("Server ready");
+		final String manageServerID = str;
 
 		EdgeLinker = new Thread(new Runnable() {
 
@@ -225,14 +217,14 @@ public class Server {
 
 			public void run() {
 				if (null != conf.getNodes() && conf.getNodes().size() > 0) {
-					Iterator itr = conf.getNodes().iterator();
+					Iterator<NodeConf> itr = conf.getNodes().iterator();
 					while (itr.hasNext()) {
 						
-							managePort = ((ServerConf.NodeConf) itr.next())
-									.getMgmt();
+						ServerConf.NodeConf conf =  itr.next();
+							managePort = conf.getMgmt();
 
 							new Thread(new Runnable() {
-								String args[] = { "localhost", managePort };
+								String args[] = { "localhost", managePort,manageServerID };
 
 								public void run() {
 									while(true){

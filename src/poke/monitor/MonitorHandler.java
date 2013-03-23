@@ -36,7 +36,7 @@ public class MonitorHandler extends SimpleChannelUpstreamHandler {
 	}
 
 	public void handleMessage(eye.Comm.Management msg) {
-		logger.info("got message");
+		logger.info("got message from "+ msg.getBeat().getNodeId());
 	}
 
 	@Override
@@ -71,7 +71,6 @@ public class MonitorHandler extends SimpleChannelUpstreamHandler {
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
 		logger.error("exception: " + e.getCause(), e);
-
 		// TODO do we really want to do this? try to re-connect?
 		e.getChannel().close();
 	}
