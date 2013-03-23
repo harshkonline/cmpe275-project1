@@ -26,23 +26,17 @@ public class Jab {
 	}
 
 	public void run() {
-		ClientConnection cc1 = ClientConnection
+		ClientConnection cc = ClientConnection
 				.initConnection("localhost", 5570);
-		ClientConnection cc2 = ClientConnection
-				.initConnection("localhost", 5580);
-		ClientConnection cc3 = ClientConnection
-				.initConnection("localhost", 5590);
 		for (int i = 0; i < 3; i++) {
 			count++;
-			cc1.poke(tag, count);
-			cc2.poke(tag, count);
-			cc3.poke(tag, count);
+			cc.poke(tag, count);
 		}
 	}
 
 	public static void main(String[] args) {
 		try {
-			Jab jab = new Jab("jab");
+			Jab jab = new Jab("storage");
 			jab.run();
 
 			Thread.sleep(5000);

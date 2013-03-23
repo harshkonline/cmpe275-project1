@@ -122,7 +122,8 @@ public class HeartMonitor {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		HeartMonitor hm = new HeartMonitor("localhost", 5670);
+		int mPort = Integer.parseInt(args[1]);
+		HeartMonitor hm = new HeartMonitor(args[0], mPort);
 		hm.waitForever();
 	}
 

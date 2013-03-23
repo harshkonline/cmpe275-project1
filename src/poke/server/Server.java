@@ -15,11 +15,17 @@
  */
 package poke.server;
 
+import java.awt.List;
 import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -35,6 +41,8 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eye.Comm.Heartbeat;
+
 import poke.server.conf.JsonUtil;
 import poke.server.conf.ServerConf;
 import poke.server.management.ManagementDecoderPipeline;
@@ -42,6 +50,7 @@ import poke.server.management.ManagementQueue;
 import poke.server.management.ServerHeartbeat;
 import poke.server.resources.ResourceFactory;
 import poke.server.routing.ServerDecoderPipeline;
+import poke.monitor.*;
 
 /**
  * Note high surges of messages can close down the channel if the handler cannot
@@ -55,6 +64,10 @@ import poke.server.routing.ServerDecoderPipeline;
  * @author gash
  * 
  */
+class EgdeMonitor {
+
+}
+
 public class Server {
 	protected static Logger logger = LoggerFactory.getLogger("server");
 
@@ -64,6 +77,7 @@ public class Server {
 	protected ChannelFactory cf, mgmtCF;
 	protected ServerConf conf;
 	protected ServerHeartbeat heartbeat;
+	Thread EdgeLinker;
 
 	/**
 	 * static because we need to get a handle to the factory from the shutdown
@@ -89,6 +103,7 @@ public class Server {
 	 */
 	public Server(File cfg) {
 		init(cfg);
+
 	}
 
 	private void init(File cfg) {
@@ -99,7 +114,6 @@ public class Server {
 			br = new BufferedInputStream(new FileInputStream(cfg));
 			br.read(raw);
 			conf = JsonUtil.decode(new String(raw), ServerConf.class);
-			
 			ResourceFactory.initialize(conf);
 		} catch (Exception e) {
 		}
@@ -178,16 +192,15 @@ public class Server {
 		logger.info("Starting server, listening on port = " + port);
 	}
 
-	protected void run(int node) {
-		//String str = conf.getServer().getProperty("port");
-		String str = conf.getNodes().get(node-1).getPort();
-		/*if (str == null)
-			str = "5570";*/
-		
+	protected void run() {
+
+		String str = conf.getServer().getProperty("port");
+		if (str == null)
+			str = "5570";
+
 		int port = Integer.parseInt(str);
 
-		//str = conf.getServer().getProperty("port.mgmt");
-		str = conf.getNodes().get(node-1).getMgmt();
+		str = conf.getServer().getProperty("port.mgmt");
 		int mport = Integer.parseInt(str);
 
 		// storage initialization
@@ -205,13 +218,41 @@ public class Server {
 		heartbeat = ServerHeartbeat.getInstance(str);
 		heartbeat.start();
 		logger.info("Server ready");
+
+		EdgeLinker = new Thread(new Runnable() {
+
+			String managePort;
+
+			public void run() {
+				if (null != conf.getNodes() && conf.getNodes().size() > 0) {
+					Iterator itr = conf.getNodes().iterator();
+					while (itr.hasNext()) {
+						
+							managePort = ((ServerConf.NodeConf) itr.next())
+									.getMgmt();
+
+							new Thread(new Runnable() {
+								String args[] = { "localhost", managePort };
+
+								public void run() {
+									while(true){
+										HeartMonitor.main(args);
+									}
+								}
+							}).start();
+						}
+				}
+			}
+		});
+		EdgeLinker.start();
+
 	}
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		if (args.length != 2) {
+		if (args.length != 1) {
 			System.err.println("Usage: java "
 					+ Server.class.getClass().getName() + " conf-file");
 			System.exit(1);
@@ -224,6 +265,7 @@ public class Server {
 		}
 
 		Server svr = new Server(cfg);
-		svr.run(Integer.parseInt(args[1]));
+		svr.run();
+
 	}
 }

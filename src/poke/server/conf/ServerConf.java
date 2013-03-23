@@ -38,7 +38,7 @@ public class ServerConf {
 	private GeneralConf server;
 	private List<ResourceConf> routing;
 	private List<NodeConf> nodes;
-
+	
 	@XmlRootElement(name = "entry")
 	@XmlAccessorType(XmlAccessType.FIELD)
 	public static final class NodeConf {
@@ -121,7 +121,7 @@ public class ServerConf {
 		}
 		return idToNode;
 	}
-	
+
 
 	private volatile HashMap<Integer, ResourceConf> idToRsc;
 

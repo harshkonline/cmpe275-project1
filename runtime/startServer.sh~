@@ -9,8 +9,9 @@ echo "** starting server from ${POKE_HOME} **"
 cd ${POKE_HOME}
 
 SERVER_CONF=$1
+SERVER_NUM=$2
 JAVA_MAIN='poke.server.Server'
-JAVA_ARGS="${POKE_HOME}/${SERVER_CONF}"
+JAVA_ARGS="${POKE_HOME}/${SERVER_CONF}/${SERVER_NUM}"
 echo "** config: ${JAVA_ARGS} **"
 
 # see http://java.sun.com/performance/reference/whitepapers/tuning.html

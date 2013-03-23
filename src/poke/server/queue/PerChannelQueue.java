@@ -239,7 +239,7 @@ public class PerChannelQueue implements ChannelQueue {
 						Resource rsc = ResourceFactory.getInstance()
 								.resourceInstance(
 										req.getHeader().getRoutingId());
-
+						
 						Response reply = null;
 						if (rsc == null) {
 							logger.error("failed to obtain resource for " + req);
@@ -248,8 +248,7 @@ public class PerChannelQueue implements ChannelQueue {
 									"Request not processed");
 						} else
 							reply = rsc.process(req);
-
-						sq.enqueueResponse(reply);
+							sq.enqueueResponse(reply);
 					}
 
 				} catch (InterruptedException ie) {

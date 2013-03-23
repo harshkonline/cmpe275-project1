@@ -21,7 +21,11 @@ import org.slf4j.LoggerFactory;
 import poke.server.resources.Resource;
 import poke.server.resources.ResourceUtil;
 import eye.Comm.Header.ReplyStatus;
+import eye.Comm.Document;
+import eye.Comm.Finger;
+import eye.Comm.Payload;
 import eye.Comm.PayloadReply;
+import eye.Comm.PayloadReplyOrBuilder;
 import eye.Comm.Request;
 import eye.Comm.Response;
 
@@ -37,19 +41,16 @@ public class PokeResource implements Resource {
 	 * @see poke.server.resources.Resource#process(eye.Comm.Finger)
 	 */
 	public Response process(Request request) {
-		
-		
 		// TODO add code to process the message/event received
-		logger.info("poke Tag: " + request.getBody().getFinger().getTag());
+		logger.info("poke: " + request.getBody().getFinger().getTag());
 
 		Response.Builder r = Response.newBuilder();
-		
 		r.setHeader(ResourceUtil.buildHeaderFrom(request.getHeader(),
 				ReplyStatus.SUCCESS, null));
-		eye.Comm.PayloadReply.Builder p = PayloadReply.newBuilder();
-		r.setBody(p);
+		PayloadReply.Builder pr = PayloadReply.newBuilder();
+		r.setBody(pr.build());
 		Response reply = r.build();
-
+		
 		return reply;
 	}
 }

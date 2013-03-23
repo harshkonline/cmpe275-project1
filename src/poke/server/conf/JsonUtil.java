@@ -47,7 +47,6 @@ public class JsonUtil {
 			ObjectMapper mapper = new ObjectMapper();
 			return mapper.readValue(data.getBytes(), theClass);
 		} catch (Exception ex) {
-			ex.printStackTrace();
 			return null;
 		}
 	}

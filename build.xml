@@ -61,11 +61,11 @@
 		</java>
 	</target>
 
-	<target name="server.1" depends="build">
+	<target name="server" depends="build">
 		<java fork="yes" maxmemory="1024m" classname="poke.server.Server">
-			<arg value="${basedir}/runtime/server1.conf"/>
-			<arg value="${servernumber}"/>
+			<arg value="${basedir}/runtime/server.conf" />
 			<classpath refid="project.classpath" />
 		</java>
 	</target>
+	
 </project>

@@ -26,6 +26,8 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import poke.server.routing.ServerDecoderPipeline;
+
 import com.google.protobuf.GeneratedMessage;
 
 import eye.Comm.Finger;
@@ -74,13 +76,13 @@ public class ClientConnection {
 		Finger.Builder f = eye.Comm.Finger.newBuilder();
 		f.setTag(tag);
 		f.setNumber(num);
-
+		
 		// payload containing data
 		Request.Builder r = Request.newBuilder();
 		eye.Comm.Payload.Builder p = Payload.newBuilder();
 		p.setFinger(f.build());
 		r.setBody(p.build());
-
+		
 		// header with routing info
 		eye.Comm.Header.Builder h = Header.newBuilder();
 		h.setOriginator("client");
@@ -88,12 +90,13 @@ public class ClientConnection {
 		h.setTime(System.currentTimeMillis());
 		h.setRoutingId(eye.Comm.Header.Routing.FINGER);
 		r.setHeader(h.build());
-
+		
 		eye.Comm.Request req = r.build();
-
+		
 		try {
 			// enqueue message
 			outbound.put(req);
+			
 		} catch (InterruptedException e) {
 			logger.warn("Unable to deliver message, queuing");
 		}
@@ -114,6 +117,7 @@ public class ClientConnection {
 
 		// Set up the pipeline factory.
 		bootstrap.setPipelineFactory(new ClientDecoderPipeline());
+		
 
 		// start outbound message processor
 		worker = new OutboundWorker(this);
