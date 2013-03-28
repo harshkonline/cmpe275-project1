@@ -15,10 +15,15 @@
  */
 package poke.server;
 
+import java.awt.List;
 import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
@@ -36,15 +41,16 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import poke.monitor.HeartMonitor;
+import eye.Comm.Heartbeat;
+
 import poke.server.conf.JsonUtil;
 import poke.server.conf.ServerConf;
-import poke.server.conf.ServerConf.NodeConf;
 import poke.server.management.ManagementDecoderPipeline;
 import poke.server.management.ManagementQueue;
 import poke.server.management.ServerHeartbeat;
 import poke.server.resources.ResourceFactory;
 import poke.server.routing.ServerDecoderPipeline;
+import poke.monitor.*;
 
 /**
  * Note high surges of messages can close down the channel if the handler cannot
@@ -58,6 +64,9 @@ import poke.server.routing.ServerDecoderPipeline;
  * @author gash
  * 
  */
+class EgdeMonitor {
+
+}
 
 public class Server {
 	protected static Logger logger = LoggerFactory.getLogger("server");
@@ -66,7 +75,7 @@ public class Server {
 			"server");
 	protected static HashMap<Integer, Bootstrap> bootstrap = new HashMap<Integer, Bootstrap>();
 	protected ChannelFactory cf, mgmtCF;
-	protected ServerConf conf;
+	public ServerConf conf;
 	protected ServerHeartbeat heartbeat;
 	Thread EdgeLinker;
 
@@ -208,8 +217,7 @@ public class Server {
 		str = conf.getServer().getProperty("node.id");
 		heartbeat = ServerHeartbeat.getInstance(str);
 		heartbeat.start();
-		logger.info("Server ready");
-		final String manageServerID = str;
+		logger.info("Server ready now");
 
 		EdgeLinker = new Thread(new Runnable() {
 
@@ -217,14 +225,14 @@ public class Server {
 
 			public void run() {
 				if (null != conf.getNodes() && conf.getNodes().size() > 0) {
-					Iterator<NodeConf> itr = conf.getNodes().iterator();
+					Iterator itr = conf.getNodes().iterator();
 					while (itr.hasNext()) {
 						
-						ServerConf.NodeConf conf =  itr.next();
-							managePort = conf.getMgmt();
+							managePort = ((ServerConf.NodeConf) itr.next())
+									.getMgmt();
 
 							new Thread(new Runnable() {
-								String args[] = { "localhost", managePort,manageServerID };
+								String args[] = { "localhost", managePort };
 
 								public void run() {
 									while(true){
@@ -239,6 +247,7 @@ public class Server {
 		EdgeLinker.start();
 
 	}
+	
 
 	/**
 	 * @param args

@@ -51,6 +51,7 @@
 
 	<target name="poke" depends="init">
 		<java fork="yes" classname="poke.demo.Jab">
+			<arg value="${arg0}"/>
 			<classpath refid="project.classpath" />
 		</java>
 	</target>

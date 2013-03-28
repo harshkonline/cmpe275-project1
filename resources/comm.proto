@@ -56,6 +56,7 @@ message Header {
     // a new message is not created.
     optional ReplyStatus reply_code = 5;
     optional string reply_msg = 6;
+    optional string routing_path = 7;
     
     enum Routing {
         FINGER = 2;

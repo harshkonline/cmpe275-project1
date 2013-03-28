@@ -89,4 +89,9 @@ public class ResourceFactory {
 		}
 	}
 
+	public static ServerConf getCfg() {
+		return cfg;
+	}
+
+
 }

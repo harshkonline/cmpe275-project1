@@ -15,6 +15,10 @@
  */
 package poke.server.routing;
 
+import java.net.InetSocketAddress;
+import java.util.concurrent.Executors;
+
+import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
@@ -22,12 +26,14 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import poke.monitor.MonitorPipeline;
 import poke.server.queue.ChannelQueue;
 import poke.server.queue.QueueFactory;
-
+import poke.client.ClientConnection;
 /**
  * As implemented, this server handler does not share queues or worker threads
  * between connections. A new instance of this class is created for each socket
@@ -64,9 +70,11 @@ public class ServerHandler extends SimpleChannelUpstreamHandler {
 			logger.error("ERROR: Unexpected content - null");
 			return;
 		}
-
+		
 		// processing is deferred to the worker threads
 		queueInstance(channel).enqueueRequest(req);
+		
+		
 	}
 
 	/**
@@ -78,12 +86,12 @@ public class ServerHandler extends SimpleChannelUpstreamHandler {
 	private ChannelQueue queueInstance(Channel channel) {
 		// if a single queue is needed, this is where we would obtain a
 		// handle to it.
-
+		
 		if (queue != null)
 			return queue;
 		else {
 			queue = QueueFactory.getInstance(channel);
-
+			
 			// on close remove from queue
 			channel.getCloseFuture().addListener(
 					new ConnectionClosedListener(queue));

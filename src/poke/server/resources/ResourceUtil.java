@@ -23,18 +23,19 @@ import eye.Comm.Header.Routing;
 public class ResourceUtil {
 
 	public static Header buildHeaderFrom(Header reqHeader, ReplyStatus status,
-			String statusMsg) {
+			String statusMsg,String routingPath) {
 		return buildHeader(reqHeader.getRoutingId(), status, statusMsg,
-				reqHeader.getOriginator(), reqHeader.getTag());
+				reqHeader.getOriginator(), reqHeader.getTag(),reqHeader.getRoutingPath());
 	}
 
 	public static Header buildHeader(Routing path, ReplyStatus status,
-			String msg, String from, String tag) {
+			String msg, String from, String tag, String routingPath) {
 		Header.Builder bldr = Header.newBuilder();
 		bldr.setOriginator(from);
 		bldr.setRoutingId(path);
 		bldr.setTag(tag);
 		bldr.setReplyCode(status);
+		bldr.setRoutingPath(routingPath);
 
 		if (msg != null)
 			bldr.setReplyMsg(msg);
@@ -47,7 +48,7 @@ public class ResourceUtil {
 	public static Response buildError(Header reqHeader, ReplyStatus status,
 			String statusMsg) {
 		Response.Builder bldr = Response.newBuilder();
-		Header hdr = buildHeaderFrom(reqHeader, status, statusMsg);
+		Header hdr = buildHeaderFrom(reqHeader, status, statusMsg,"CMPE275S");
 		bldr.setHeader(hdr);
 
 		// TODO add logging

@@ -1,3 +1,5 @@
+package poke.clientServer;
+
 /*
  * copyright 2012, gash
  * 
@@ -13,7 +15,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package poke.client;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
@@ -25,20 +26,20 @@ import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.protobuf.GeneratedMessage;
 
 import eye.Comm.Finger;
 import eye.Comm.Header;
 import eye.Comm.Payload;
 import eye.Comm.Request;
-
 /**
  * provides an abstraction of the communication to the remote server.
  * 
  * @author gash
  * 
  */
-public class ClientConnection {
+public class ServerConnection {
 	protected static Logger logger = LoggerFactory.getLogger("client");
 
 	private String host;
@@ -48,7 +49,7 @@ public class ClientConnection {
 	private LinkedBlockingDeque<com.google.protobuf.GeneratedMessage> outbound;
 	private OutboundWorker worker;
 
-	protected ClientConnection(String host, int port) {
+	protected ServerConnection(String host, int port) {
 		this.host = host;
 		this.port = port;
 
@@ -62,13 +63,13 @@ public class ClientConnection {
 		bootstrap.releaseExternalResources();
 	}
 
-	public static ClientConnection initConnection(String host, int port) {
+	public static ServerConnection initConnection(String host, int port) {
 
-		ClientConnection rtn = new ClientConnection(host, port);
+		ServerConnection rtn = new ServerConnection(host, port);
 		return rtn;
 	}
 
-	public void poke(String tag, int num) {
+	public Request poke(String tag, int num) {
 		// data to send
 		Finger.Builder f = eye.Comm.Finger.newBuilder();
 		f.setTag(tag);
@@ -97,6 +98,7 @@ public class ClientConnection {
 		} catch (InterruptedException e) {
 			logger.warn("Unable to deliver message, queuing");
 		}
+		return req;
 	}
 
 	private void init() {
@@ -113,7 +115,7 @@ public class ClientConnection {
 		bootstrap.setOption("keepAlive", true);
 
 		// Set up the pipeline factory.
-		bootstrap.setPipelineFactory(new ClientDecoderPipeline());
+		bootstrap.setPipelineFactory(new RouteDecoderPipeline());
 		
 
 		// start outbound message processor
@@ -154,10 +156,10 @@ public class ClientConnection {
 	 * 
 	 */
 	protected class OutboundWorker extends Thread {
-		ClientConnection conn;
+		ServerConnection conn;
 		boolean forever = true;
 
-		public OutboundWorker(ClientConnection conn) {
+		public OutboundWorker(ServerConnection conn) {
 			this.conn = conn;
 
 			if (conn.outbound == null)
@@ -169,7 +171,7 @@ public class ClientConnection {
 		public void run() {
 			Channel ch = conn.connect();
 			if (ch == null || !ch.isOpen()) {
-				ClientConnection.logger
+				ServerConnection.logger
 						.error("connection missing, no outbound communication");
 				return;
 			}
@@ -182,8 +184,8 @@ public class ClientConnection {
 					// block until a message is enqueued
 					GeneratedMessage msg = conn.outbound.take();
 					if (ch.isWritable()) {
-						ClientHandler handler = conn.connect().getPipeline()
-								.get(ClientHandler.class);
+						RoutingHandler handler = conn.connect().getPipeline()
+								.get(RoutingHandler.class);
 
 						if (!handler.send(msg))
 							conn.outbound.putFirst(msg);
@@ -193,14 +195,14 @@ public class ClientConnection {
 				} catch (InterruptedException ie) {
 					break;
 				} catch (Exception e) {
-					ClientConnection.logger.error(
+					ServerConnection.logger.error(
 							"Unexpected communcation failure", e);
 					break;
 				}
 			}
 
 			if (!forever) {
-				ClientConnection.logger.info("connection queue closing");
+				ServerConnection.logger.info("connection queue closing");
 			}
 		}
 	}

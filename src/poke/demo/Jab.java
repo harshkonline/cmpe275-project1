@@ -25,9 +25,9 @@ public class Jab {
 		this.tag = tag;
 	}
 
-	public void run() {
+	public void run(String port) {
 		ClientConnection cc = ClientConnection
-				.initConnection("localhost", 5570);
+				.initConnection("localhost", Integer.parseInt(port));
 		for (int i = 0; i < 3; i++) {
 			count++;
 			cc.poke(tag, count);
@@ -37,7 +37,7 @@ public class Jab {
 	public static void main(String[] args) {
 		try {
 			Jab jab = new Jab("storage");
-			jab.run();
+			jab.run(args[0]);
 
 			Thread.sleep(5000);
 

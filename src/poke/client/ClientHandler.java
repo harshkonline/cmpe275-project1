@@ -47,6 +47,7 @@ public class ClientHandler extends SimpleChannelUpstreamHandler {
 	public boolean send(GeneratedMessage msg) {
 		// TODO a queue is needed to prevent overloading of the socket
 		// connection. For the demonstration, we don't need it
+
 		ChannelFuture cf = channel.write(msg);
 		if (cf.isDone() && !cf.isSuccess()) {
 			logger.error("failed to poke!");
@@ -62,6 +63,7 @@ public class ClientHandler extends SimpleChannelUpstreamHandler {
 			System.out.println(" - Tag : " + msg.getHeader().getTag());
 			System.out.println(" - Time : " + msg.getHeader().getTime());
 			System.out.println(" - Status : " + msg.getHeader().getReplyCode());
+			System.out.println("- Path: "+msg.getHeader().getRoutingPath());
 			System.out.println("\nInfo:");
 			printDocument(msg.getBody().getFinger());
 		}

@@ -86,11 +86,13 @@ public class HeartMonitor {
 	protected Channel connect() {
 		// Start the connection attempt.
 		if (channel == null) {
-			logger.info("connecting to "+host+":"+port);
+			logger.info("connecting");
 			channel = bootstrap.connect(new InetSocketAddress(host, port));
 		}
+
 		// wait for the connection to establish
 		channel.awaitUninterruptibly();
+
 		if (channel.isDone() && channel.isSuccess())
 			return channel.getChannel();
 		else
@@ -98,15 +100,16 @@ public class HeartMonitor {
 					"Not able to establish connection to server");
 	}
 
-	protected void waitForever(String nodeId) {
+	protected void waitForever() {
 		try {
 			Channel ch = connect();
 			Network.Builder n = Network.newBuilder();
-			n.setNodeId(nodeId);
+			n.setNodeId("monitor");
 			n.setAction(Action.NODEJOIN);
 			Management.Builder m = Management.newBuilder();
 			m.setGraph(n.build());
 			ch.write(m.build());
+
 			while (true) {
 				Thread.sleep(1000);
 			}
@@ -121,7 +124,7 @@ public class HeartMonitor {
 	public static void main(String[] args) {
 		int mPort = Integer.parseInt(args[1]);
 		HeartMonitor hm = new HeartMonitor(args[0], mPort);
-		hm.waitForever(args[2]);
+		hm.waitForever();
 	}
 
 }

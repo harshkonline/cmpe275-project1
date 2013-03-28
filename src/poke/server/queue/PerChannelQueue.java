@@ -24,6 +24,7 @@ import org.jboss.netty.channel.ChannelFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import poke.server.conf.ServerConf;
 import poke.server.resources.Resource;
 import poke.server.resources.ResourceFactory;
 import poke.server.resources.ResourceUtil;
@@ -246,8 +247,9 @@ public class PerChannelQueue implements ChannelQueue {
 							reply = ResourceUtil.buildError(req.getHeader(),
 									ReplyStatus.FAILURE,
 									"Request not processed");
-						} else
-							reply = rsc.process(req);
+						} else{
+									reply = rsc.process(req);
+						}
 							sq.enqueueResponse(reply);
 					}
 
